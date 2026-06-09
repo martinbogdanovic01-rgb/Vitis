@@ -1,0 +1,40 @@
+11:11:05 **** Incremental Build of configuration Debug for project SensingColours ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+'Building file: ../src/main.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/main.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.c"
+'Finished building: ../src/main.c'
+' '
+'Building file: ../src/pwm.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/pwm.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/pwm.d" -MT"src/pwm.o" -o "src/pwm.o" "../src/pwm.c"
+'Finished building: ../src/pwm.c'
+' '
+'Building file: ../src/sense.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/sense.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/sense.d" -MT"src/sense.o" -o "src/sense.o" "../src/sense.c"
+'Finished building: ../src/sense.c'
+' '
+'Building file: ../src/system_init.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/system_init.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/system_init.d" -MT"src/system_init.o" -o "src/system_init.o" "../src/system_init.c"
+'Finished building: ../src/system_init.c'
+' '
+'Building target: SensingColours.elf'
+'Invoking: ARM v7 gcc linker'
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bsplib/lib -o "SensingColours.elf"  ./src/main.o ./src/platform.o ./src/pwm.o ./src/sense.o ./src/system_init.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+'Finished building target: SensingColours.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size SensingColours.elf  |tee "SensingColours.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  40030	   2024	  22784	  64838	   fd46	SensingColours.elf
+'Finished building: SensingColours.elf.size'
+' '
+
+11:11:06 Build Finished (took 1s.810ms)
+

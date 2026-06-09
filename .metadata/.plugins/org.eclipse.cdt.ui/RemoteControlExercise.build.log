@@ -1,0 +1,7 @@
+13:54:40 **** Clean-only build of configuration Debug for project RemoteControlExercise ****
+make clean 
+rm -rf  ./src/audio_codec.o ./src/main.o ./src/platform.o ./src/uart.o  ./src/audio_codec.d ./src/main.d ./src/platform.d ./src/uart.d  RemoteControlExercise.elf.size  RemoteControlExercise.elf
+' '
+
+13:54:40 Build Finished (took 158ms)
+

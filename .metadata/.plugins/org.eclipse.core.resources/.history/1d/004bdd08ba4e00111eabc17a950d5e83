@@ -1,0 +1,132 @@
+/* ----------------------------------------------------------------------------
+ * Remote Control + Audio Filter - Merged Application
+ * Authors:  (student name(s))
+ * Date:     May 2026
+ * ---------------------------------------------------------------------------- */
+
+#include <stdio.h>
+#include "xparameters.h"
+#include "xstatus.h"
+#include "xil_printf.h"
+#include "xil_io.h"
+#include "xgpio.h"
+#include "platform.h"
+#include "uart.h"
+#include "audio_codec.h"
+
+#define BTNS_DEVICE_ID      XPAR_GPIO_2_DEVICE_ID
+#define LEDS_DEVICE_ID      XPAR_GPIO_3_DEVICE_ID
+#define NUM_BUTTONS         4
+
+static XGpio leds;
+static XGpio buttons;
+static u8  led_state = 0x00;
+static u32 btn_prev  = 0;
+
+static void toggle_led(int index)
+{
+    if (index < 0 || index >= NUM_BUTTONS) return;
+    led_state ^= (1 << index);
+    XGpio_DiscreteWrite(&leds, 1, (u32)led_state);
+    xil_printf("LED %d toggled -> %s\r\n", index, (led_state >> index) & 1 ? "ON" : "OFF");
+}
+
+static void handle_buttons(void)
+{
+    u32 btn_cur = XGpio_DiscreteRead(&buttons, 1) & 0x0F;
+    u32 rising  = btn_cur & (~btn_prev);
+
+    for (int i = 0; i < NUM_BUTTONS; i++) {
+        if (rising & (1 << i)) {
+            xil_printf("Local button %d pressed\r\n", i);
+            toggle_led(i);
+        }
+    }
+    btn_prev = btn_cur;
+}
+
+static void handle_uart(void)
+{
+    if (!uart_data_available()) return;
+
+    u8 cmd = uart_read_char();
+
+    /* Protocol: '1'..'4' maps to button/LED index 0..3 */
+    if (cmd >= '1' && cmd <= '4') {
+        int index = cmd - '1';
+        xil_printf("Remote command: button %d\r\n", index);
+        toggle_led(index);
+    }
+}
+
+int main(void)
+{
+    int status;
+
+    init_platform();
+
+    xil_printf("\r\n=== Remote Control + Audio Filter ===\r\n");
+
+    /* GPIO init */
+    XGpio_Initialize(&leds,    LEDS_DEVICE_ID);
+    XGpio_Initialize(&buttons, BTNS_DEVICE_ID);
+    XGpio_SetDataDirection(&leds,    1, 0x0);
+    XGpio_SetDataDirection(&buttons, 1, 0xF);
+    XGpio_DiscreteWrite(&leds,       1, 0x0);
+
+    /* UART init */
+    status = uart_init();
+    if (status != XST_SUCCESS) {
+        xil_printf("UART init FAILED\r\n");
+        return XST_FAILURE;
+    }
+
+    /* Audio codec init */
+    IicConfig(XPAR_XIICPS_1_DEVICE_ID);
+    AudioPllConfig();
+    AudioConfigureJacks();
+    xil_printf("ADAU1761 configured\r\n");
+
+    xil_printf("Ready. Send '1'-'4' via UART to toggle LEDs.\r\n");
+
+    s32 prev_in_right_s32 = 0;
+
+    while (1)
+    {
+        /* Poll for new audio sample (non-blocking) */
+        u32 status_reg = Xil_In32(I2S_STATUS_REG);
+        u8  is_ready   = (status_reg >> 21) & 1;
+
+        if (!is_ready) {
+            handle_buttons();
+            handle_uart();
+            continue;
+        }
+
+        /* Clear ready bit */
+        status_reg &= ~(1u << 21);
+        Xil_Out32(I2S_STATUS_REG, status_reg);
+
+        /* Read audio input */
+        u32 in_right = Xil_In32(I2S_DATA_RX_R_REG);
+        u32 in_left  = Xil_In32(I2S_DATA_RX_L_REG);
+
+        /* 2-tap moving average filter on right channel */
+        s32 in_right_s32  = (s32)(in_right << 8);
+        s64 acc           = (s64)in_right_s32 + (s64)prev_in_right_s32;
+        acc             >>= 1;
+        u32 out_right     = (u32)((s32)(acc >> 8));
+        prev_in_right_s32 = in_right_s32;
+
+        /* Write audio output */
+        Xil_Out32(I2S_DATA_TX_R_REG, out_right);
+        Xil_Out32(I2S_DATA_TX_L_REG, in_left);
+
+        /* Handle buttons and UART once per audio sample */
+        handle_buttons();
+        handle_uart();
+    }
+
+    cleanup_platform();
+    return XST_SUCCESS;
+}

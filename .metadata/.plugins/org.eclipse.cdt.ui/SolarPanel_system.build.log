@@ -1,0 +1,8 @@
+12:09:17 **** Clean-only build of configuration Debug for project SolarPanel_system ****
+make clean 
+rm -rf ./_sds
+rm -rf package
+rm -f system.bif
+
+12:09:18 Build Finished (took 283ms)
+

@@ -1,0 +1,14 @@
+14:43:03 **** Incremental Build of configuration Debug for project LightSensor_system ****
+make all 
+Generating bif file for the system project
+generate_system_bif.bat 55545 C:/Users/marti/workspace/system_wrapper/export/system_wrapper/system_wrapper.xpfm standalone_ps7_cortexa9_0 C:/Users/marti/workspace/LightSensor_system/Debug/system.bif
+ECHO is off.
+ECHO is off.
+sdcard_gen --xpfm C:/Users/marti/workspace/system_wrapper/export/system_wrapper/system_wrapper.xpfm --sys_config system_wrapper --bif C:/Users/marti/workspace/LightSensor_system/Debug/system.bif --bitstream C:/Users/marti/workspace/LightSensor/_ide/bitstream/system_wrapper.bit --elf C:/Users/marti/workspace/LightSensor/Debug/LightSensor.elf,ps7_cortexa9_0
+ECHO is off.
+ECHO is off.
+creating BOOT.BIN using C:/Users/marti/workspace/LightSensor/_ide/bitstream/system_wrapper.bit
+Running C:/Xilinx/Vitis/2023.1/bin/bootgen  -image C:/Users/marti/workspace/LightSensor_system/Debug/sd_card_temp/boot.bif -w -o i BOOT.BIN
+
+14:43:09 Build Finished (took 5s.403ms)
+

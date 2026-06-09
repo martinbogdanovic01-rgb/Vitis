@@ -1,0 +1,10 @@
+13:29:00 **** Incremental Build of configuration Debug for project Wirelesstest ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+make[1]: Nothing to be done for 'main-build'.
+
+13:29:01 Build Finished (took 312ms)
+

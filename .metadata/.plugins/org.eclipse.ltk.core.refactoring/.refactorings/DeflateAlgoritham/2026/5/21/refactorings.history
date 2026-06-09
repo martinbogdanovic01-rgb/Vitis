@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;DeflateAlgoritham/src/deflate.c&apos; to &apos;deflate_decompression.c&apos;" description="Rename resource &apos;deflate.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/deflate.c" name="deflate_decompression.c" stamp="1779106319548" updateReferences="true"/>
+</session>

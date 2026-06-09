@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;lighttracker/src/helloworld.c&apos; to &apos;solar_tracker_pynq.c&apos;" description="Rename resource &apos;helloworld.c&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/helloworld.c" name="solar_tracker_pynq.c" stamp="1762730227797" updateReferences="true"/>
+</session>

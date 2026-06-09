@@ -1,0 +1,100 @@
+#ifndef CC1101_SETTINGS_H
+#define CC1101_SETTINGS_H
+
+#include <stdint.h>
+
+/* PA table */
+#define PA_TABLE {0x50,0x00,0x00,0x00,0x00,0x00,0x00,0x00}
+
+// ADDRESS OF STROBE COMMANDS
+#define SRES_ADR 0x30
+#define SRX_ADR 0x34
+#define STX_ADR 0x35
+#define SIDLE_ADR 0x36
+#define SFRX_ADR 0x3A
+#define SFTX_ADR 0x3B
+
+// ADDRESS OF STATUS REGISTERS
+#define MARCSTATE_ADR     0x35  // Check current radio state
+#define RXBYTES_ADR       0x3B  // Check bytes available in RX buffer
+
+// ADDRESS OF FIFOS
+#define RXFIFO_ADR 0x3F
+#define TXFIFO_ADR 0x3F
+
+#define PARTNUM_ADR  0x30
+#define VERSION_ADR  0x31
+#define CHANNR_ADR 0x0A
+#define MCSM1_ADR 0x17
+
+#define RSSI_ADR 0x34
+
+// RF settings for CC1101
+
+typedef struct {
+    uint8_t iocfg2;           // GDO2 Output Pin Configuration
+    uint8_t iocfg1;           // GDO1 Output Pin Configuration
+    uint8_t iocfg0;           // GDO0 Output Pin Configuration
+    uint8_t fifothr;          // RX FIFO and TX FIFO Thresholds
+    uint8_t sync1;            // Sync Word, High Byte
+    uint8_t sync0;            // Sync Word, Low Byte
+    uint8_t pktlen;           // Packet Length
+    uint8_t pktctrl1;         // Packet Automation Control
+    uint8_t pktctrl0;         // Packet Automation Control
+    uint8_t addr;             // Device Address
+    uint8_t channr;           // Channel Number
+    uint8_t fsctrl1;          // Frequency Synthesizer Control
+    uint8_t fsctrl0;          // Frequency Synthesizer Control
+    uint8_t freq2;            // Frequency Control Word, High Byte
+    uint8_t freq1;            // Frequency Control Word, Middle Byte
+    uint8_t freq0;            // Frequency Control Word, Low Byte
+    uint8_t mdmcfg4;          // Modem Configuration
+    uint8_t mdmcfg3;          // Modem Configuration
+    uint8_t mdmcfg2;          // Modem Configuration
+    uint8_t mdmcfg1;          // Modem Configuration
+    uint8_t mdmcfg0;          // Modem Configuration
+    uint8_t deviatn;          // Modem Deviation Setting
+    uint8_t mcsm2;            // Main Radio Control State Machine Configuration
+    uint8_t mcsm1;            // Main Radio Control State Machine Configuration
+    uint8_t mcsm0;            // Main Radio Control State Machine Configuration
+    uint8_t foccfg;           // Frequency Offset Compensation Configuration
+    uint8_t bscfg;            // Bit Synchronization Configuration
+    uint8_t agcctrl2;         // AGC Control
+    uint8_t agcctrl1;         // AGC Control
+    uint8_t agcctrl0;         // AGC Control
+    uint8_t worevt1;          // High Byte Event0 Timeout
+    uint8_t worevt0;          // Low Byte Event0 Timeout
+    uint8_t worctrl;          // Wake On Radio Control
+    uint8_t frend1;           // Front End RX Configuration
+    uint8_t frend0;           // Front End TX Configuration
+    uint8_t fscal3;           // Frequency Synthesizer Calibration
+    uint8_t fscal2;           // Frequency Synthesizer Calibration
+    uint8_t fscal1;           // Frequency Synthesizer Calibration
+    uint8_t fscal0;           // Frequency Synthesizer Calibration
+    uint8_t rcctrl1;          // RC Oscillator Configuration
+    uint8_t rcctrl0;          // RC Oscillator Configuration
+    uint8_t fstest;           // Frequency Synthesizer Calibration Control
+    uint8_t ptest;            // Production Test
+    uint8_t agctest;          // AGC Test
+    uint8_t test2;            // Various Test Settings
+    uint8_t test1;            // Various Test Settings
+    uint8_t test0;            // Various Test Settings
+    uint8_t partnum;          // Chip ID
+    uint8_t version;          // Chip ID
+    uint8_t freqest;          // Frequency Offset Estimate from Demodulator
+    uint8_t lqi;              // Demodulator Estimate for Link Quality
+    uint8_t rssi;             // Received Signal Strength Indication
+    uint8_t marcstate;        // Main Radio Control State Machine State
+    uint8_t wortime1;         // High Byte of WOR Time
+    uint8_t wortime0;         // Low Byte of WOR Time
+    uint8_t pktstatus;        // Current GDOx Status and Packet Status
+    uint8_t vco_vc_dac;       // Current Setting from PLL Calibration Module
+    uint8_t txbytes;          // Underflow and Number of Bytes
+    uint8_t rxbytes;          // Overflow and Number of Bytes
+    uint8_t rcctrl1_status;   // Last RC Oscillator Calibration Result
+    uint8_t rcctrl0_status;   // Last RC Oscillator Calibration Result
+} RF_SETTINGS;
+
+extern RF_SETTINGS rfSettings;
+
+#endif

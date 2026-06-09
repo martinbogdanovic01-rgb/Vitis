@@ -1,0 +1,40 @@
+19:28:23 **** Build of configuration Debug for project DeflateAlgoritham ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+'Building file: ../src/deflate_compression.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/deflate_compression.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/deflate_compression.d" -MT"src/deflate_compression.o" -o "src/deflate_compression.o" "../src/deflate_compression.c"
+'Finished building: ../src/deflate_compression.c'
+' '
+'Building file: ../src/deflate_decompression.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/deflate_decompression.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/deflate_decompression.d" -MT"src/deflate_decompression.o" -o "src/deflate_decompression.o" "../src/deflate_decompression.c"
+'Finished building: ../src/deflate_decompression.c'
+' '
+'Building file: ../src/main.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/main.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/main.d" -MT"src/main.o" -o "src/main.o" "../src/main.c"
+'Finished building: ../src/main.c'
+' '
+'Building file: ../src/platform.c'
+'Invoking: ARM v7 gcc compiler'
+arm-none-eabi-gcc -Wall -O0 -g3 -c -fmessage-length=0 -MT"src/platform.o" -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -IC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bspinclude/include -MMD -MP -MF"src/platform.d" -MT"src/platform.o" -o "src/platform.o" "../src/platform.c"
+'Finished building: ../src/platform.c'
+' '
+'Building target: DeflateAlgoritham.elf'
+'Invoking: ARM v7 gcc linker'
+arm-none-eabi-gcc -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=hard -Wl,-build-id=none -specs=Xilinx.spec -Wl,-T -Wl,../src/lscript.ld -LC:/Users/marti/workspace/system_wrapper/export/system_wrapper/sw/system_wrapper/standalone_ps7_cortexa9_0/bsplib/lib -o "DeflateAlgoritham.elf"  ./src/deflate_compression.o ./src/deflate_decompression.o ./src/main.o ./src/platform.o   -Wl,--start-group,-lxil,-lgcc,-lc,--end-group
+'Finished building target: DeflateAlgoritham.elf'
+' '
+'Invoking: ARM v7 Print Size'
+arm-none-eabi-size DeflateAlgoritham.elf  |tee "DeflateAlgoritham.elf.size"
+   text	   data	    bss	    dec	    hex	filename
+  32257	   1144	  57544	  90945	  16341	DeflateAlgoritham.elf
+'Finished building: DeflateAlgoritham.elf.size'
+' '
+
+19:28:26 Build Finished (took 3s.866ms)
+

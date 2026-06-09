@@ -1,0 +1,218 @@
+/* ----------------------------------------------------------------------------
+ * Remote Control + Audio Filter - Merged Application
+ *
+ * Assignment: ECEN427 / FEB26_43EEDMO7ES
+ *
+ * Features:
+ *   - Remote control: 4 buttons/LEDs, toggled locally or via UART protocol
+ *   - Audio: 2-tap moving average filter on right channel (48 kHz)
+ *
+ * Protocol design (unidirectional: Laptop -> PYNQ-Z2 over UART):
+ *   Single-byte command:
+ *     '1' (0x31) -> toggle LED 0 / Button 0
+ *     '2' (0x32) -> toggle LED 1 / Button 1
+ *     '3' (0x33) -> toggle LED 2 / Button 2
+ *     '4' (0x34) -> toggle LED 3 / Button 3
+ *
+ *   Rationale:
+ *     - Single byte = minimal overhead, no framing needed
+ *     - Human-readable (easy to test via PuTTY)
+ *     - Any other byte is silently ignored (robust to noise)
+ *
+ * Timing analysis:
+ *   - Audio sample rate : 48 000 Hz  -> period ~20.8 us
+ *   - UART baud rate    : 115 200 bps -> max ~11 520 chars/s -> ~86.8 us/char
+ *   - The audio task is leading: we must poll the I2S ready-bit every ~20 us.
+ *   - We therefore NEVER block-wait for audio; instead we check the ready-bit
+ *     and only process a UART character when a fresh audio sample has just been
+ *     handled (i.e., once per audio cycle at most). This guarantees no glitches
+ *     while keeping remote control responsive (latency <= 1 audio period = 20 us).
+ *
+ * Authors:  (student name(s))
+ * Date:     May 2026
+ * ---------------------------------------------------------------------------- */
+
+#include <stdio.h>
+#include "xparameters.h"
+#include "xstatus.h"
+#include "xil_printf.h"
+#include "xil_io.h"
+#include "xgpio.h"          /* AXI GPIO driver for buttons & LEDs              */
+#include "platform.h"
+#include "uart.h"
+#include "audio_codec.h"
+
+/* --------------------------------------------------------------------------
+ * GPIO device IDs - separate GPIO blocks for LEDs and buttons
+ * -------------------------------------------------------------------------- */
+#define BTNS_DEVICE_ID      XPAR_GPIO_2_DEVICE_ID
+#define LEDS_DEVICE_ID      XPAR_GPIO_3_DEVICE_ID
+#define NUM_BUTTONS         4   /* We support 4 buttons / 4 LEDs               */
+
+/* --------------------------------------------------------------------------
+ * Button-press debounce: compare current vs previous raw GPIO value.
+ * A button is considered "pressed" on the rising edge (0 -> 1 transition).
+ * -------------------------------------------------------------------------- */
+static XGpio leds;
+static XGpio buttons;
+
+/* LED state: bit i == 1 means LED i is ON */
+static u8 led_state = 0x00;
+
+/* Previous button raw value (for edge detection) */
+static u32 btn_prev = 0;
+
+/* --------------------------------------------------------------------------
+ * toggle_led - toggle the LED corresponding to button index (0-3)
+ * -------------------------------------------------------------------------- */
+static void toggle_led(int index)
+{
+    if (index < 0 || index >= NUM_BUTTONS) return;
+    led_state ^= (1 << index);
+    XGpio_DiscreteWrite(&leds, 1, (u32)led_state);
+    xil_printf("LED %d toggled -> %s\r\n", index, (led_state >> index) & 1 ? "ON" : "OFF");
+}
+
+/* --------------------------------------------------------------------------
+ * handle_buttons - detect rising edges on any of the 4 buttons
+ * -------------------------------------------------------------------------- */
+static void handle_buttons(void)
+{
+    u32 btn_cur = XGpio_DiscreteRead(&buttons, 1) & 0x0F;
+    u32 rising  = btn_cur & (~btn_prev);   /* bits that just went 0->1       */
+
+    for (int i = 0; i < NUM_BUTTONS; i++) {
+        if (rising & (1 << i)) {
+            xil_printf("Local button %d pressed\r\n", i);
+            toggle_led(i);
+        }
+    }
+    btn_prev = btn_cur;
+}
+
+/* --------------------------------------------------------------------------
+ * handle_uart - read one character if available and act on the protocol
+ * -------------------------------------------------------------------------- */
+static void handle_uart(void)
+{
+    if (!uart_data_available()) return;
+
+    u8 cmd = uart_read_char();
+
+    /* Protocol: '1'..'4' maps to button index 0..3 */
+    if (cmd >= '1' && cmd <= '4') {
+        int index = cmd - '1';
+        xil_printf("Remote command: button %d\r\n", index);
+        toggle_led(index);
+    } else {
+        /* Unknown byte - ignore silently (could add debug print here) */
+    }
+}
+
+/* --------------------------------------------------------------------------
+ * main
+ * -------------------------------------------------------------------------- */
+int main(void)
+{
+    int status;
+
+    /* --- Platform / cache init ------------------------------------------ */
+    init_platform();
+
+    xil_printf("\r\n=== Remote Control + Audio Filter ===\r\n");
+
+    /* --- GPIO init (buttons + LEDs) ------------------------------------- */
+    status = XGpio_Initialize(&gpio, GPIO_DEVICE_ID);
+    if (status != XST_SUCCESS) {
+        xil_printf("GPIO init FAILED\r\n");
+        return XST_FAILURE;
+    }
+    /* Buttons = input (direction bit = 1), LEDs = output (direction bit = 0) */
+    XGpio_SetDataDirection(&gpio, BTN_CHANNEL, 0xFF);  /* all input           */
+    XGpio_SetDataDirection(&gpio, LED_CHANNEL, 0x00);  /* all output          */
+    XGpio_DiscreteWrite(&gpio,    LED_CHANNEL, 0x00);  /* all LEDs off        */
+
+    /* --- UART init ------------------------------------------------------ */
+    status = uart_init();
+    if (status != XST_SUCCESS) {
+        xil_printf("UART init FAILED\r\n");
+        return XST_FAILURE;
+    }
+
+    /* --- Audio codec init ----------------------------------------------- */
+    IicConfig(XPAR_XIICPS_1_DEVICE_ID);
+    AudioPllConfig();
+    AudioConfigureJacks();
+    xil_printf("ADAU1761 configured\r\n");
+
+    xil_printf("Ready. Send '1'-'4' via UART to toggle LEDs.\r\n");
+
+    /* --- Audio filter state --------------------------------------------- */
+    s32 prev_in_right_s32 = 0;  /* previous right-channel sample              */
+
+    /* --- Main loop ------------------------------------------------------ */
+    /*
+     * Structure:
+     *   1. Poll I2S status register (non-blocking).
+     *   2. When a new audio sample is ready (~every 20.8 us):
+     *      a. Process audio (moving average filter).
+     *      b. After audio, check buttons and UART once.
+     *         (Doing I/O work AFTER the audio write minimises jitter.)
+     *
+     * This way the audio loop never stalls; button/UART polling happens at
+     * 48 kHz which is far more than sufficient for human interaction.
+     */
+    while (1)
+    {
+        /* ---- 1. Wait for new audio sample (non-blocking poll) ---------- */
+        u32 status_reg = Xil_In32(I2S_STATUS_REG);
+        u8  is_ready   = (status_reg >> 21) & 1;
+
+        if (!is_ready) {
+            /*
+             * No audio sample yet.
+             * We still check UART/buttons here so that the remote control
+             * remains responsive even in the (rare) gap between audio samples.
+             * Because the gap is ~20 us and UART chars arrive at most every
+             * ~87 us, we will at most check once per char arrival anyway.
+             */
+            handle_buttons();
+            handle_uart();
+            continue;
+        }
+
+        /* ---- 2a. Clear the ready bit ----------------------------------- */
+        status_reg &= ~(1u << 21);
+        Xil_Out32(I2S_STATUS_REG, status_reg);
+
+        /* ---- 2b. Read audio input (right channel only) ----------------- */
+        u32 in_right     = Xil_In32(I2S_DATA_RX_R_REG);
+        u32 in_left      = Xil_In32(I2S_DATA_RX_L_REG);   /* pass-through    */
+
+        /* ---- 2c. 2-tap moving average filter on right channel ---------- */
+        /*
+         * The raw 24-bit sample is stored in bits [31:8] of the 32-bit word.
+         * Shifting left by 8 aligns it to a full signed 32-bit value so that
+         * arithmetic (signed addition, right-shift divide) works correctly.
+         * After filtering we shift back right by 8 to restore the original
+         * 24-bit-in-32-bit format before writing to the DAC register.
+         */
+        s32 in_right_s32  = (s32)(in_right << 8);
+        s64 acc           = (s64)in_right_s32 + (s64)prev_in_right_s32;
+        acc             >>= 1;                              /* divide by 2     */
+        u32 out_right     = (u32)((s32)(acc >> 8));
+        prev_in_right_s32 = in_right_s32;
+
+        /* ---- 2d. Write audio output ------------------------------------ */
+        Xil_Out32(I2S_DATA_TX_R_REG, out_right);
+        Xil_Out32(I2S_DATA_TX_L_REG, in_left);             /* left = bypass   */
+
+        /* ---- 2e. Handle buttons and UART (once per audio sample) ------- */
+        handle_buttons();
+        handle_uart();
+    }
+
+    /* Never reached */
+    cleanup_platform();
+    return XST_SUCCESS;
+}

@@ -1,0 +1,11 @@
+09:52:01 **** Incremental Build of configuration Debug for project rgbdiode ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+make[1]: *** No rule to make target 'timer_f.o', needed by 'rgbdiode.elf'.  Stop.
+make: *** [makefile:34: all] Error 2
+
+09:52:02 Build Finished (took 935ms)
+

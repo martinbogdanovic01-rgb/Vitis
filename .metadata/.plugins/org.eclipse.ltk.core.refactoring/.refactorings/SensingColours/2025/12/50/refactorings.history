@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;SensingColours/src/timer_f (1).h&apos; to &apos;timer_f .h&apos;" description="Rename resource &apos;timer_f (1).h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="src/timer_f (1).h" name="timer_f .h" stamp="1765359865225" updateReferences="true"/>
+</session>

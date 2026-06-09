@@ -1,0 +1,10 @@
+23:54:24 **** Incremental Build of configuration Debug for project lighttracker ****
+make all 
+make --no-print-directory pre-build
+a9-linaro-pre-build-step
+' '
+make --no-print-directory main-build
+make[1]: Nothing to be done for 'main-build'.
+
+23:54:24 Build Finished (took 292ms)
+
