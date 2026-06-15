@@ -4,7 +4,6 @@
 #include "oled_ui.h"
 #include "config.h"
 #include <stdio.h>
-#include <math.h>
 
 void update_motor_logic() {
     float ver_diff = sensor_voltages[0] - sensor_voltages[1];

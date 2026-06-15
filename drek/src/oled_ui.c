@@ -6,7 +6,6 @@
 #include <stdio.h>
 
 extern u8g2_t u8g2;
-extern int8_t MaxStrHeight;
 
 #define TRACKER_CX  110
 #define TRACKER_CY   51

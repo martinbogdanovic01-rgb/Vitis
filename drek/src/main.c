@@ -10,7 +10,7 @@
 #include "memory.h"
 #include "oled_ui.h"
 
-extern volatile int UpdateMotorsNow; // Access the flag
+extern volatile int UpdateMotorsNow;
 XGpio outputGPIO;
 
 int main() {
