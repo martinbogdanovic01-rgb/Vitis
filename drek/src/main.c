@@ -8,8 +8,7 @@
 #include "sensors.h"
 #include "xgpio.h"
 #include "memory.h"
-
-// Inside main(), after system initialization:
+#include "oled_ui.h"
 
 extern volatile int UpdateMotorsNow; // Access the flag
 XGpio outputGPIO;
@@ -21,6 +20,7 @@ int main() {
 
     Init_pwm();
     Init_adc();
+    OLED_Init();
     Init_GIC();
     Init_SCU_Timer_Int_System();
 
